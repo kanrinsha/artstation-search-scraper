@@ -109,8 +109,14 @@ class Core:
                         continue
                     items.append(item.get("id"))
 
-                if len(items) > 1:
-                    self.album_manager.batchRemoveMediaItems(self.configur.get("general", "album_id"), items)
+                chunked_list = []
+                if len(items) > 0:
+                    chunk_size = 49
+                    for i in range(0, len(items), chunk_size):
+                        chunked_list.append(items[i:i+chunk_size])
+
+                    for chunk in chunked_list:
+                        self.album_manager.batchRemoveMediaItems(self.configur.get("general", "album_id"), chunk)
 
                 # then add new items
                 for file in file_list:
