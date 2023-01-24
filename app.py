@@ -83,17 +83,29 @@ class App:
         self.GLineEdit_63["justify"] = "center"
         self.GLineEdit_63["text"] = "10"
         self.GLineEdit_63.place(x=250,y=100,width=70,height=25)
-        self.GLineEdit_63.insert(0, self.configur.get("general", "amount"))
 
     def GButton_150_command(self):
+        if self.GLineEdit_63.get() == "":
+            tkinter.messagebox.showerror(message="Please input amount")
+            return
+
+        if int(self.GLineEdit_63.get()) == 0 or int(self.GLineEdit_63.get()) > 100:
+            tkinter.messagebox.showerror(message="Amount cannot be zero or greater than 100")
+            return
+
         if self.GLineEdit_980.get() == "":
-            tkinter.messagebox.showinfo("Error", "Please input a valid query.")
+            tkinter.messagebox.showerror(message="Query cannot be empty")
+            return
+
+        if self.GLineEdit_769.get() == "":
+            tkinter.messagebox.showerror(message="Album name cannot be empty")
             return
 
         print("Commencing scraping!")
+        print(self.GLineEdit_980.get())
+        print(self.GLineEdit_63.get())
 
         self.configur.set("general", "album_name", self.GLineEdit_769.get())
-        self.configur.set("general", "amount", self.GLineEdit_63.get())
         with open('config.ini', 'w') as configfile:  # save
             self.configur.write(configfile)
 

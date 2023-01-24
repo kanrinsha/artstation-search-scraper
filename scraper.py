@@ -1,3 +1,4 @@
+import sys
 import tkinter.messagebox
 from core import Core
 
@@ -11,5 +12,7 @@ class Scraper:
         self.core = Core()
 
     def download_by_query(self, query, amount):
-        self.core.download_data_by_query(query, amount)
+        self.core.download_data_by_query(query=query, amount=amount)
+        print("Scraping Complete!")
         do_popup(message="Scraping Complete!", title="")
+        sys.exit()

@@ -1,3 +1,5 @@
+import time
+
 from googleapiclient.errors import HttpError
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -45,6 +47,10 @@ class Core:
 
         self.driver.minimize_window()
 
+        for _ in range(10):
+            self.driver.execute_script("window.scrollTo(0,document.body.scrollHeight)")
+            time.sleep(0.5)
+
         elements = self.driver.find_elements(By.CLASS_NAME, "d-block")
 
         link_list = []
@@ -55,12 +61,12 @@ class Core:
         return link_list
 
     def download_data_by_query(self, query, amount):
-        data = self.get_images_src(self.url + query)
+        data = self.get_images_src(self.url + "&query=" + query)
         count = 0
         file_list = []
 
         for i in data:
-            if count > int(amount):
+            if count > int(amount) - 1:
                 break
 
             url_to_get = i
@@ -84,35 +90,41 @@ class Core:
             # more efficient would be to read size before writing to disk, but this works
             im = Image.open(file)
             w, h = im.size
-            if w <= 400 or h <= 400:
+            if w == h:
+                continue
+            if w < h:
                 continue
 
             file_list.append(file)
             count += 1
 
+        print("Download complete! Upload in progress...")
+
         # if we have the album id in config
         if self.configur.get("general", "album_id") != "0":
-            # first remove all old items from album if the album has any
-            list_iterator = list(self.media_manager.search_album(self.configur.get("general", "album_id")))
-            items = []
-            for item in list_iterator:
-                if item is None:
-                    continue
-                items.append(item.get("id"))
-
-            if len(items) > 1:
-                self.album_manager.batchRemoveMediaItems(self.configur.get("general", "album_id"), items)
-
-            # then add new items
-            for file in file_list:
-                self.media_manager.stage_media(file)
-                self.media_manager.batchCreate(album_id=self.configur.get("general", "album_id"))
-        else:
             try:
-                new_album = self.album_manager.create(self.configur.get("general", "album_name"))
-            except HttpError as e:
-                print("Failed to create new album.\n{}".format(e))
-            else:
+                # first remove all old items from album if the album has any
+                list_iterator = list(self.media_manager.search_album(self.configur.get("general", "album_id")))
+                items = []
+                for item in list_iterator:
+                    if item is None:
+                        continue
+                    items.append(item.get("id"))
+
+                if len(items) > 1:
+                    self.album_manager.batchRemoveMediaItems(self.configur.get("general", "album_id"), items)
+
+                # then add new items
+                for file in file_list:
+                    self.media_manager.stage_media(file)
+                    self.media_manager.batchCreate(album_id=self.configur.get("general", "album_id"))
+            except Exception as e:
+                print("Failed to get last album.\n{}".format(e))
+                print("Creating new one...")
+                try:
+                    new_album = self.album_manager.create(self.configur.get("general", "album_name"))
+                except HttpError as e:
+                    print("Failed to create new album.\n{}".format(e))
                 id_album = new_album.get("id")
                 self.configur.set("general", "album_id", id_album)
                 with open('config.ini', 'w') as configfile:  # save
@@ -120,3 +132,16 @@ class Core:
                 for file in file_list:
                     self.media_manager.stage_media(file)
                     self.media_manager.batchCreate(album_id=self.configur.get("general", "album_id"))
+
+        else:
+            try:
+                new_album = self.album_manager.create(self.configur.get("general", "album_name"))
+            except HttpError as e:
+                print("Failed to create new album.\n{}".format(e))
+            id_album = new_album.get("id")
+            self.configur.set("general", "album_id", id_album)
+            with open('config.ini', 'w') as configfile:  # save
+                self.configur.write(configfile)
+            for file in file_list:
+                self.media_manager.stage_media(file)
+                self.media_manager.batchCreate(album_id=self.configur.get("general", "album_id"))
