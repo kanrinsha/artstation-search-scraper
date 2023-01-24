@@ -1,16 +1,5 @@
 from setuptools import setup
 
-setup(
-    name='Artstation Scraper',
-    version='1.0',
-    packages=['gphotospy'],
-    url='',
-    license='MIT',
-    author='tristan edwards',
-    author_email='tristedw@gmail.com',
-    description='Artstation Search Scraper'
-)
-
 # This call to setup() does all the work
 setup(
     name="asss",
