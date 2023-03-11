@@ -1,5 +1,4 @@
-# asss
-Artstation Search Scraper
+# Artstation Search Scraper
 
 # About
 Many other scrapers for art station either are limited by username or trending feed, this one bypasses the cloudflare protection by opening a selenium window and then grabs the high res images of each item. Used personally for screensaver purposes. You can select the amount of images to download from the query, up to 100 currently, and they download locally to your specified folder then also upload to a google photos album.
